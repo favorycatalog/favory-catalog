@@ -9,13 +9,20 @@
   :root {
     --bg-color: #ffffff;
     --text-color: #111111;
-    --card-bg: #f7f7f7;
-    --accent: #d4af37;
+    --card-bg: #f2f2f2;
+    --accent: #111111;
+    --accent-text: #ffffff;
+    --border-color: #c0c0c0;
+    --price-color: #8a8a8a;
   }
   body.dark-theme {
-    --bg-color: #17171a;
+    --bg-color: #121212;
     --text-color: #ffffff;
-    --card-bg: #2a2a2d;
+    --card-bg: #1e1e1e;
+    --accent: #ffffff;
+    --accent-text: #000000;
+    --border-color: #555555;
+    --price-color: #b0b0b0;
   }
   * { box-sizing: border-box; }
   body {
@@ -24,16 +31,6 @@
     background-color: var(--bg-color);
     color: var(--text-color);
     padding: 16px;
-  }
-  .back-btn {
-    background: none;
-    border: none;
-    color: var(--accent);
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    cursor: pointer;
-    padding: 0;
   }
   .tabs {
     display: flex;
@@ -44,7 +41,7 @@
     flex: 1;
     padding: 8px;
     border-radius: 10px;
-    border: 1px solid var(--accent);
+    border: 1px solid var(--border-color);
     background: none;
     color: var(--text-color);
     font-size: 13px;
@@ -52,7 +49,8 @@
   }
   .tab-btn.active {
     background-color: var(--accent);
-    color: #fff;
+    color: var(--accent-text);
+    border-color: var(--accent);
   }
   .gallery {
     display: flex;
@@ -80,7 +78,7 @@
   .price {
     font-size: 22px;
     font-weight: 700;
-    color: var(--accent);
+    color: var(--price-color);
     margin: 0 0 20px 0;
   }
   .buy-btn {
@@ -89,7 +87,7 @@
     border: none;
     border-radius: 12px;
     background-color: var(--accent);
-    color: #fff;
+    color: var(--accent-text);
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
@@ -103,13 +101,19 @@
 </head>
 <body>
 
-<button class="back-btn" onclick="goBack()">← Назад</button>
-
 <div id="content"></div>
 
 <script>
 const tg = window.Telegram.WebApp;
 try { tg.ready(); tg.expand(); } catch(e) {}
+
+// Показываем нативную кнопку "Назад" от Telegram (сверху приложения)
+try {
+  tg.BackButton.show();
+  tg.BackButton.onClick(() => {
+    window.location.href = "catalog.html";
+  });
+} catch(e) {}
 
 // ===== ТОТ ЖЕ СПИСОК ТОВАРОВ, ЧТО И В catalog.html =====
 // (временно дублируем, позже подключим Google Таблицу — тогда дублирования не будет)
@@ -126,7 +130,7 @@ const PRODUCTS = [
       "https://picsum.photos/seed/ring1model1/500",
       "https://picsum.photos/seed/ring1model2/500"
     ],
-    video360: "" // сюда вставите ссылку на YouTube видео (embed), например: https://www.youtube.com/embed/XXXXXXXXX
+    video360: ""
   },
   {
     id: 2, title: "Кольцо classic", priceUSD: 320, category: "rings",
@@ -209,36 +213,3 @@ function render() {
 
   content.innerHTML = `
     ${tabsHtml}
-    ${galleryHtml}
-    <h1>${product.title}</h1>
-    <div class="price">$${product.priceUSD}</div>
-    <button class="buy-btn" onclick="buyThisProduct()">Купить</button>
-  `;
-}
-
-function setTab(tab) {
-  activeTab = tab;
-  render();
-}
-
-function buyThisProduct() {
-  try {
-    tg.sendData(JSON.stringify({ action: "buy", id: productId }));
-  } catch(e) {
-    alert("Товар куплен (тест): ID " + productId);
-  }
-}
-
-function goBack() {
-  if (window.history.length > 1) {
-    window.history.back();
-  } else {
-    window.close();
-  }
-}
-
-render();
-</script>
-
-</body>
-</html>
