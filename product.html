@@ -31,6 +31,7 @@
     background-color: var(--bg-color);
     color: var(--text-color);
     padding: 16px;
+    transition: background-color 0.2s, color 0.2s;
   }
   .tabs {
     display: flex;
@@ -59,17 +60,14 @@
     margin-bottom: 16px;
     scroll-snap-type: x mandatory;
   }
-  .gallery img, .gallery iframe {
+  .gallery img {
     width: 100%;
     flex-shrink: 0;
     scroll-snap-align: center;
     border-radius: 14px;
     aspect-ratio: 1 / 1;
     object-fit: cover;
-    border: none;
-  }
-  .gallery iframe {
-    aspect-ratio: 16 / 9;
+    background-color: var(--card-bg);
   }
   h1 {
     font-size: 20px;
@@ -107,109 +105,152 @@
 const tg = window.Telegram.WebApp;
 try { tg.ready(); tg.expand(); } catch(e) {}
 
-// Показываем нативную кнопку "Назад" от Telegram (сверху приложения)
 try {
   tg.BackButton.show();
-  tg.BackButton.onClick(() => {
+  tg.BackButton.onClick(function() {
     window.location.href = "catalog.html";
   });
 } catch(e) {}
 
-// ===== ТОТ ЖЕ СПИСОК ТОВАРОВ, ЧТО И В catalog.html =====
-// (временно дублируем, позже подключим Google Таблицу — тогда дублирования не будет)
 const PRODUCTS = [
   {
-    id: 1, title: "Кольцо с бриллиантом", priceUSD: 480, category: "rings",
+    id: 1,
+    title: "Кольцо с бриллиантом",
+    priceUSD: 480,
     photosWhite: [
       "https://picsum.photos/seed/ring1a/500",
-      "https://picsum.photos/seed/ring1b/500",
-      "https://picsum.photos/seed/ring1c/500",
-      "https://picsum.photos/seed/ring1d/500"
+      "https://picsum.photos/seed/ring1b/500"
     ],
     photosModel: [
-      "https://picsum.photos/seed/ring1model1/500",
-      "https://picsum.photos/seed/ring1model2/500"
+      "https://picsum.photos/seed/ring1model1/500"
+    ]
+  },
+  {
+    id: 2,
+    title: "Кольцо classic",
+    priceUSD: 320,
+    photosWhite: [
+      "https://picsum.photos/seed/ring2a/500",
+      "https://picsum.photos/seed/ring2b/500"
     ],
-    video360: ""
+    photosModel: [
+      "https://picsum.photos/seed/ring2model1/500"
+    ]
   },
   {
-    id: 2, title: "Кольцо classic", priceUSD: 320, category: "rings",
-    photosWhite: ["https://picsum.photos/seed/ring2a/500", "https://picsum.photos/seed/ring2b/500"],
-    photosModel: ["https://picsum.photos/seed/ring2model1/500"],
-    video360: ""
+    id: 3,
+    title: "Серьги гвоздики",
+    priceUSD: 210,
+    photosWhite: [
+      "https://picsum.photos/seed/earr1a/500",
+      "https://picsum.photos/seed/earr1b/500"
+    ],
+    photosModel: [
+      "https://picsum.photos/seed/earr1model1/500"
+    ]
   },
   {
-    id: 3, title: "Серьги гвоздики", priceUSD: 210, category: "earrings",
-    photosWhite: ["https://picsum.photos/seed/earr1a/500", "https://picsum.photos/seed/earr1b/500"],
-    photosModel: ["https://picsum.photos/seed/earr1model1/500"],
-    video360: ""
+    id: 4,
+    title: "Колье тонкое",
+    priceUSD: 390,
+    photosWhite: [
+      "https://picsum.photos/seed/neck1a/500",
+      "https://picsum.photos/seed/neck1b/500"
+    ],
+    photosModel: [
+      "https://picsum.photos/seed/neck1model1/500"
+    ]
   },
   {
-    id: 4, title: "Колье тонкое", priceUSD: 390, category: "necklaces",
-    photosWhite: ["https://picsum.photos/seed/neck1a/500", "https://picsum.photos/seed/neck1b/500"],
-    photosModel: ["https://picsum.photos/seed/neck1model1/500"],
-    video360: ""
+    id: 5,
+    title: "Браслет цепочка",
+    priceUSD: 275,
+    photosWhite: [
+      "https://picsum.photos/seed/brac1a/500",
+      "https://picsum.photos/seed/brac1b/500"
+    ],
+    photosModel: [
+      "https://picsum.photos/seed/brac1model1/500"
+    ]
   },
   {
-    id: 5, title: "Браслет цепочка", priceUSD: 275, category: "bracelets",
-    photosWhite: ["https://picsum.photos/seed/brac1a/500", "https://picsum.photos/seed/brac1b/500"],
-    photosModel: ["https://picsum.photos/seed/brac1model1/500"],
-    video360: ""
-  },
-  {
-    id: 6, title: "Серьги подвески", priceUSD: 260, category: "earrings",
-    photosWhite: ["https://picsum.photos/seed/earr2a/500", "https://picsum.photos/seed/earr2b/500"],
-    photosModel: ["https://picsum.photos/seed/earr2model1/500"],
-    video360: ""
-  },
+    id: 6,
+    title: "Серьги подвески",
+    priceUSD: 260,
+    photosWhite: [
+      "https://picsum.photos/seed/earr2a/500",
+      "https://picsum.photos/seed/earr2b/500"
+    ],
+    photosModel: [
+      "https://picsum.photos/seed/earr2model1/500"
+    ]
+  }
 ];
 
-// ===== ТЕМА =====
 function updateTheme() {
   let isDark = false;
-  try { isDark = tg.colorScheme === "dark"; }
-  catch(e) { isDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  try {
+    isDark = tg.colorScheme === "dark";
+  } catch(e) {
+    isDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
   document.body.classList.toggle("dark-theme", isDark);
 }
+
 updateTheme();
 try { tg.onEvent("themeChanged", updateTheme); } catch(e) {}
 
-// ===== НАХОДИМ ТОВАР ПО ID ИЗ ССЫЛКИ =====
 const params = new URLSearchParams(window.location.search);
 const productId = Number(params.get("id"));
-const product = PRODUCTS.find(p => p.id === productId);
+const product = PRODUCTS.find(function(p) { return p.id === productId; });
 
-let activeTab = "white"; // white | model | video
+let activeTab = "white";
+
+function setTab(tab) {
+  activeTab = tab;
+  render();
+}
 
 function render() {
   const content = document.getElementById("content");
 
   if (!product) {
-    content.innerHTML = `<div class="not-found">Товар не найден</div>`;
+    content.innerHTML = '<div class="not-found">Товар не найден</div>';
     return;
   }
 
-  const tabsHtml = `
-    <div class="tabs">
-      <button class="tab-btn ${activeTab === 'white' ? 'active' : ''}" onclick="setTab('white')">На белом</button>
-      <button class="tab-btn ${activeTab === 'model' ? 'active' : ''}" onclick="setTab('model')">На модели</button>
-      ${product.video360 ? `<button class="tab-btn ${activeTab === 'video' ? 'active' : ''}" onclick="setTab('video')">Видео 360°</button>` : ''}
-    </div>
-  `;
+  const tabsHtml =
+    '<div class="tabs">' +
+      '<button class="tab-btn ' + (activeTab === "white" ? "active" : "") + '" onclick="setTab(\'white\')">На белом</button>' +
+      '<button class="tab-btn ' + (activeTab === "model" ? "active" : "") + '" onclick="setTab(\'model\')">На модели</button>' +
+    '</div>';
+
+  let photos = activeTab === "white" ? product.photosWhite : product.photosModel;
 
   let galleryHtml = '<div class="gallery">';
-  if (activeTab === 'white') {
-    product.photosWhite.forEach(url => {
-      galleryHtml += `<img src="${url}" alt="${product.title}">`;
-    });
-  } else if (activeTab === 'model') {
-    product.photosModel.forEach(url => {
-      galleryHtml += `<img src="${url}" alt="${product.title}">`;
-    });
-  } else if (activeTab === 'video') {
-    galleryHtml += `<iframe src="${product.video360}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-  }
+  photos.forEach(function(url) {
+    galleryHtml += '<img src="' + url + '" alt="' + product.title + '">';
+  });
   galleryHtml += '</div>';
 
-  content.innerHTML = `
-    ${tabsHtml}
+  content.innerHTML =
+    tabsHtml +
+    galleryHtml +
+    '<h1>' + product.title + '</h1>' +
+    '<div class="price">$' + product.priceUSD + '</div>' +
+    '<button class="buy-btn" onclick="buyProduct(' + product.id + ')">Купить</button>';
+}
+
+function buyProduct(id) {
+  try {
+    tg.sendData(JSON.stringify({ action: "buy", id: id }));
+  } catch(e) {
+    alert("Товар куплен (тест): ID " + id);
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>
