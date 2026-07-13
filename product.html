@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Товар — Favory</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg-color: #ffffff;
+    --text-color: #111111;
+    --card-bg: #f7f7f7;
+    --accent: #d4af37;
+  }
+  body.dark-theme {
+    --bg-color: #17171a;
+    --text-color: #ffffff;
+    --card-bg: #2a2a2d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    padding: 16px;
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid var(--accent);
+    background: none;
+    color: var(--text-color);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .tab-btn.active {
+    background-color: var(--accent);
+    color: #fff;
+  }
+  .gallery {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    margin-bottom: 16px;
+    scroll-snap-type: x mandatory;
+  }
+  .gallery img, .gallery iframe {
+    width: 100%;
+    flex-shrink: 0;
+    scroll-snap-align: center;
+    border-radius: 14px;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border: none;
+  }
+  .gallery iframe {
+    aspect-ratio: 16 / 9;
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 6px 0;
+  }
+  .price {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 0 0 20px 0;
+  }
+  .buy-btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    background-color: var(--accent);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .not-found {
+    text-align: center;
+    padding: 60px 20px;
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+
+<button class="back-btn" onclick="goBack()">← Назад</button>
+
+<div id="content"></div>
+
+<script>
+const tg = window.Telegram.WebApp;
+try { tg.ready(); tg.expand(); } catch(e) {}
+
+// ===== ТОТ ЖЕ СПИСОК ТОВАРОВ, ЧТО И В catalog.html =====
+// (временно дублируем, позже подключим Google Таблицу — тогда дублирования не будет)
+const PRODUCTS = [
+  {
+    id: 1, title: "Кольцо с бриллиантом", priceUSD: 480, category: "rings",
+    photosWhite: [
+      "https://picsum.photos/seed/ring1a/500",
+      "https://picsum.photos/seed/ring1b/500",
+      "https://picsum.photos/seed/ring1c/500",
+      "https://picsum.photos/seed/ring1d/500"
+    ],
+    photosModel: [
+      "https://picsum.photos/seed/ring1model1/500",
+      "https://picsum.photos/seed/ring1model2/500"
+    ],
+    video360: "" // сюда вставите ссылку на YouTube видео (embed), например: https://www.youtube.com/embed/XXXXXXXXX
+  },
+  {
+    id: 2, title: "Кольцо classic", priceUSD: 320, category: "rings",
+    photosWhite: ["https://picsum.photos/seed/ring2a/500", "https://picsum.photos/seed/ring2b/500"],
+    photosModel: ["https://picsum.photos/seed/ring2model1/500"],
+    video360: ""
+  },
+  {
+    id: 3, title: "Серьги гвоздики", priceUSD: 210, category: "earrings",
+    photosWhite: ["https://picsum.photos/seed/earr1a/500", "https://picsum.photos/seed/earr1b/500"],
+    photosModel: ["https://picsum.photos/seed/earr1model1/500"],
+    video360: ""
+  },
+  {
+    id: 4, title: "Колье тонкое", priceUSD: 390, category: "necklaces",
+    photosWhite: ["https://picsum.photos/seed/neck1a/500", "https://picsum.photos/seed/neck1b/500"],
+    photosModel: ["https://picsum.photos/seed/neck1model1/500"],
+    video360: ""
+  },
+  {
+    id: 5, title: "Браслет цепочка", priceUSD: 275, category: "bracelets",
+    photosWhite: ["https://picsum.photos/seed/brac1a/500", "https://picsum.photos/seed/brac1b/500"],
+    photosModel: ["https://picsum.photos/seed/brac1model1/500"],
+    video360: ""
+  },
+  {
+    id: 6, title: "Серьги подвески", priceUSD: 260, category: "earrings",
+    photosWhite: ["https://picsum.photos/seed/earr2a/500", "https://picsum.photos/seed/earr2b/500"],
+    photosModel: ["https://picsum.photos/seed/earr2model1/500"],
+    video360: ""
+  },
+];
+
+// ===== ТЕМА =====
+function updateTheme() {
+  let isDark = false;
+  try { isDark = tg.colorScheme === "dark"; }
+  catch(e) { isDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches; }
+  document.body.classList.toggle("dark-theme", isDark);
+}
+updateTheme();
+try { tg.onEvent("themeChanged", updateTheme); } catch(e) {}
+
+// ===== НАХОДИМ ТОВАР ПО ID ИЗ ССЫЛКИ =====
+const params = new URLSearchParams(window.location.search);
+const productId = Number(params.get("id"));
+const product = PRODUCTS.find(p => p.id === productId);
+
+let activeTab = "white"; // white | model | video
+
+function render() {
+  const content = document.getElementById("content");
+
+  if (!product) {
+    content.innerHTML = `<div class="not-found">Товар не найден</div>`;
+    return;
+  }
+
+  const tabsHtml = `
+    <div class="tabs">
+      <button class="tab-btn ${activeTab === 'white' ? 'active' : ''}" onclick="setTab('white')">На белом</button>
+      <button class="tab-btn ${activeTab === 'model' ? 'active' : ''}" onclick="setTab('model')">На модели</button>
+      ${product.video360 ? `<button class="tab-btn ${activeTab === 'video' ? 'active' : ''}" onclick="setTab('video')">Видео 360°</button>` : ''}
+    </div>
+  `;
+
+  let galleryHtml = '<div class="gallery">';
+  if (activeTab === 'white') {
+    product.photosWhite.forEach(url => {
+      galleryHtml += `<img src="${url}" alt="${product.title}">`;
+    });
+  } else if (activeTab === 'model') {
+    product.photosModel.forEach(url => {
+      galleryHtml += `<img src="${url}" alt="${product.title}">`;
+    });
+  } else if (activeTab === 'video') {
+    galleryHtml += `<iframe src="${product.video360}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+  }
+  galleryHtml += '</div>';
+
+  content.innerHTML = `
+    ${tabsHtml}
+    ${galleryHtml}
+    <h1>${product.title}</h1>
+    <div class="price">$${product.priceUSD}</div>
+    <button class="buy-btn" onclick="buyThisProduct()">Купить</button>
+  `;
+}
+
+function setTab(tab) {
+  activeTab = tab;
+  render();
+}
+
+function buyThisProduct() {
+  try {
+    tg.sendData(JSON.stringify({ action: "buy", id: productId }));
+  } catch(e) {
+    alert("Товар куплен (тест): ID " + productId);
+  }
+}
+
+function goBack() {
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    window.close();
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>
