@@ -40,6 +40,10 @@
   .logo {
     max-width: 140px;
     margin-bottom: 8px;
+    transition: filter 0.2s;
+  }
+  body.dark-theme .logo {
+    filter: invert(1);
   }
   .categories {
     display: flex;
@@ -125,7 +129,6 @@ const tg = window.Telegram.WebApp;
 try { tg.ready(); tg.expand(); } catch(e) {}
 try { tg.BackButton.hide(); } catch(e) {}
 
-// ===== ВРЕМЕННЫЙ СПИСОК ТОВАРОВ (позже заменим на Google Таблицу) =====
 const PRODUCTS = [
   { id: 1, title: "Кольцо с бриллиантом", priceUSD: 480, category: "rings", photoMain: "https://picsum.photos/seed/ring1/400" },
   { id: 2, title: "Кольцо classic", priceUSD: 320, category: "rings", photoMain: "https://picsum.photos/seed/ring2/400" },
@@ -145,7 +148,6 @@ const CATEGORIES = [
 
 let activeCategory = "all";
 
-// ===== ТЕМА (свет/тьма) =====
 function updateTheme() {
   let isDark = false;
   try { isDark = tg.colorScheme === "dark"; }
@@ -156,7 +158,6 @@ function updateTheme() {
 updateTheme();
 try { tg.onEvent("themeChanged", updateTheme); } catch(e) {}
 
-// ===== РЕНДЕР КАТЕГОРИЙ =====
 function renderCategories() {
   const wrap = document.getElementById("categories");
   wrap.innerHTML = "";
@@ -173,7 +174,6 @@ function renderCategories() {
   });
 }
 
-// ===== РЕНДЕР ТОВАРОВ =====
 function renderProducts() {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
@@ -193,12 +193,10 @@ function renderProducts() {
       </div>
     `;
 
-    // Клик по карточке — переход на страницу товара (в том же окне Telegram)
     card.onclick = function() {
       window.location.href = `product.html?id=${product.id}`;
     };
 
-    // Клик по кнопке "Купить" — не открывать карточку, а сразу купить
     const buyBtn = card.querySelector(".buy-btn");
     buyBtn.onclick = function(event) {
       event.stopPropagation();
