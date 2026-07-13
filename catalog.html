@@ -106,7 +106,7 @@
 <body>
 
 <div class="header">
-  <img class="logo" id="logo" src="" alt="Favory">
+  <img class="logo" id="logo" src="logo.png" alt="Favory">
 </div>
 
 <div class="categories" id="categories"></div>
@@ -143,15 +143,6 @@ function updateTheme() {
   try { isDark = tg.colorScheme === "dark"; }
   catch(e) { isDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches; }
   document.body.classList.toggle("dark-theme", isDark);
-  updateLogo(isDark);
-}
-
-function updateLogo(isDark) {
-  const logo = document.getElementById("logo");
-  // Замените ссылки на свои логотипы (светлый и тёмный варианты)
-  logo.src = isDark
-    ? "https://via.placeholder.com/200x60/17171a/ffffff?text=FAVORY"
-    : "https://via.placeholder.com/200x60/ffffff/111111?text=FAVORY";
 }
 
 updateTheme();
