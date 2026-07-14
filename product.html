@@ -37,6 +37,7 @@
     display: flex;
     gap: 8px;
     margin-bottom: 12px;
+    flex-wrap: wrap;
   }
   .gallery-tab-btn {
     padding: 6px 14px;
@@ -146,7 +147,7 @@ const PRODUCTS = [
     id: 1, articul: "R-001", title: "Кольцо с бриллиантом", priceKZT: 220000, category: "rings",
     photosWhite: ["https://picsum.photos/seed/ring1a/600", "https://picsum.photos/seed/ring1b/600"],
     photosModel: ["https://picsum.photos/seed/ring1m/600"],
-    videoId: "",
+    videoId: "dQw4w9WgXcQ",
     description: "Элегантное кольцо из белого золота с бриллиантом. Идеально подходит для особых случаев."
   },
   {
@@ -223,28 +224,31 @@ function render() {
     return;
   }
 
-  const currentPhotos = activeTab === "white" ? product.photosWhite : product.photosModel;
-  const mainPhoto = currentPhotos[activePhotoIndex] || currentPhotos[0];
-
   let html = '';
 
   html += '<div class="gallery-tabs">';
   html += '<button class="gallery-tab-btn' + (activeTab === "white" ? " active" : "") + '" onclick="setTab(\'white\')">На белом</button>';
   html += '<button class="gallery-tab-btn' + (activeTab === "model" ? " active" : "") + '" onclick="setTab(\'model\')">На модели</button>';
+  if (product.videoId) {
+    html += '<button class="gallery-tab-btn' + (activeTab === "youtube" ? " active" : "") + '" onclick="setTab(\'youtube\')">YouTube</button>';
+  }
   html += '</div>';
 
-  html += '<img class="main-photo" src="' + mainPhoto + '" alt="' + product.title + '">';
-
-  if (currentPhotos.length > 1) {
-    html += '<div class="thumbs">';
-    currentPhotos.forEach(function(photo, index) {
-      html += '<img class="thumb' + (index === activePhotoIndex ? " active" : "") + '" src="' + photo + '" onclick="setPhoto(' + index + ')">';
-    });
-    html += '</div>';
-  }
-
-  if (product.videoId) {
+  if (activeTab === "youtube" && product.videoId) {
     html += '<div class="video-wrap"><iframe src="https://www.youtube.com/embed/' + product.videoId + '" allowfullscreen></iframe></div>';
+  } else {
+    const currentPhotos = activeTab === "model" ? product.photosModel : product.photosWhite;
+    const mainPhoto = currentPhotos[activePhotoIndex] || currentPhotos[0];
+
+    html += '<img class="main-photo" src="' + mainPhoto + '" alt="' + product.title + '">';
+
+    if (currentPhotos.length > 1) {
+      html += '<div class="thumbs">';
+      currentPhotos.forEach(function(photo, index) {
+        html += '<img class="thumb' + (index === activePhotoIndex ? " active" : "") + '" src="' + photo + '" onclick="setPhoto(' + index + ')">';
+      });
+      html += '</div>';
+    }
   }
 
   html += '<div class="articul">Артикул: ' + product.articul + '</div>';
