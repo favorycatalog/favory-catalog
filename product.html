@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Товар — Favory</title>
+<title>Favory — Каталог</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root {
@@ -33,223 +33,194 @@
     padding: 16px;
     transition: background-color 0.2s, color 0.2s;
   }
-  .tabs {
+  .header {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .logo {
+    max-width: 140px;
+    margin-bottom: 8px;
+    transition: filter 0.2s;
+  }
+  body.dark-theme .logo {
+    filter: invert(1);
+  }
+  .categories {
     display: flex;
     gap: 8px;
-    margin-bottom: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 16px;
   }
-  .tab-btn {
-    flex: 1;
-    padding: 8px;
-    border-radius: 10px;
+  .category-btn {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: 20px;
     border: 1px solid var(--border-color);
     background: none;
     color: var(--text-color);
-    font-size: 13px;
+    font-size: 14px;
     cursor: pointer;
   }
-  .tab-btn.active {
+  .category-btn.active {
     background-color: var(--accent);
     color: var(--accent-text);
     border-color: var(--accent);
   }
-  .gallery {
-    display: flex;
-    overflow-x: auto;
-    gap: 10px;
-    margin-bottom: 16px;
-    scroll-snap-type: x mandatory;
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
   }
-  .gallery img {
-    width: 100%;
-    flex-shrink: 0;
-    scroll-snap-align: center;
+  .product-card {
+    background-color: var(--card-bg);
     border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+  }
+  .product-photo {
+    width: 100%;
     aspect-ratio: 1 / 1;
     object-fit: cover;
-    background-color: var(--card-bg);
+    background-color: #ddd;
   }
-  h1 {
-    font-size: 20px;
-    margin: 0 0 6px 0;
+  .product-info {
+    padding: 10px;
   }
-  .price {
-    font-size: 22px;
+  .product-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 4px 0;
+  }
+  .product-price {
+    font-size: 15px;
     font-weight: 700;
     color: var(--price-color);
-    margin: 0 0 20px 0;
+    margin: 0 0 8px 0;
   }
   .buy-btn {
     width: 100%;
-    padding: 15px;
+    padding: 8px;
     border: none;
-    border-radius: 12px;
+    border-radius: 8px;
     background-color: var(--accent);
     color: var(--accent-text);
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
-  }
-  .not-found {
-    text-align: center;
-    padding: 60px 20px;
-    opacity: 0.7;
   }
 </style>
 </head>
 <body>
 
-<div id="content"></div>
+<div class="header">
+  <img class="logo" id="logo" src="logo.png" alt="Favory">
+</div>
+
+<div class="categories" id="categories"></div>
+
+<div class="grid" id="grid"></div>
 
 <script>
 const tg = window.Telegram.WebApp;
 try { tg.ready(); tg.expand(); } catch(e) {}
+try { tg.BackButton.hide(); } catch(e) {}
 
-try {
-  tg.BackButton.show();
-  tg.BackButton.onClick(function() {
-    window.location.href = "catalog.html";
-  });
-} catch(e) {}
+// Номер менеджера для WhatsApp — ЗАМЕНИТЕ на реальный
+const MANAGER_PHONE = "77000000000";
 
 const PRODUCTS = [
-  {
-    id: 1,
-    title: "Кольцо с бриллиантом",
-    priceUSD: 480,
-    photosWhite: [
-      "https://picsum.photos/seed/ring1a/500",
-      "https://picsum.photos/seed/ring1b/500"
-    ],
-    photosModel: [
-      "https://picsum.photos/seed/ring1model1/500"
-    ]
-  },
-  {
-    id: 2,
-    title: "Кольцо classic",
-    priceUSD: 320,
-    photosWhite: [
-      "https://picsum.photos/seed/ring2a/500",
-      "https://picsum.photos/seed/ring2b/500"
-    ],
-    photosModel: [
-      "https://picsum.photos/seed/ring2model1/500"
-    ]
-  },
-  {
-    id: 3,
-    title: "Серьги гвоздики",
-    priceUSD: 210,
-    photosWhite: [
-      "https://picsum.photos/seed/earr1a/500",
-      "https://picsum.photos/seed/earr1b/500"
-    ],
-    photosModel: [
-      "https://picsum.photos/seed/earr1model1/500"
-    ]
-  },
-  {
-    id: 4,
-    title: "Колье тонкое",
-    priceUSD: 390,
-    photosWhite: [
-      "https://picsum.photos/seed/neck1a/500",
-      "https://picsum.photos/seed/neck1b/500"
-    ],
-    photosModel: [
-      "https://picsum.photos/seed/neck1model1/500"
-    ]
-  },
-  {
-    id: 5,
-    title: "Браслет цепочка",
-    priceUSD: 275,
-    photosWhite: [
-      "https://picsum.photos/seed/brac1a/500",
-      "https://picsum.photos/seed/brac1b/500"
-    ],
-    photosModel: [
-      "https://picsum.photos/seed/brac1model1/500"
-    ]
-  },
-  {
-    id: 6,
-    title: "Серьги подвески",
-    priceUSD: 260,
-    photosWhite: [
-      "https://picsum.photos/seed/earr2a/500",
-      "https://picsum.photos/seed/earr2b/500"
-    ],
-    photosModel: [
-      "https://picsum.photos/seed/earr2model1/500"
-    ]
-  }
+  { id: 1, articul: "R-001", title: "Кольцо с бриллиантом", priceKZT: 220000, category: "rings", photoMain: "https://picsum.photos/seed/ring1/400" },
+  { id: 2, articul: "R-002", title: "Кольцо classic", priceKZT: 150000, category: "rings", photoMain: "https://picsum.photos/seed/ring2/400" },
+  { id: 3, articul: "E-001", title: "Серьги гвоздики", priceKZT: 95000, category: "earrings", photoMain: "https://picsum.photos/seed/earr1/400" },
+  { id: 4, articul: "N-001", title: "Колье тонкое", priceKZT: 180000, category: "necklaces", photoMain: "https://picsum.photos/seed/neck1/400" },
+  { id: 5, articul: "B-001", title: "Браслет цепочка", priceKZT: 125000, category: "bracelets", photoMain: "https://picsum.photos/seed/brac1/400" },
+  { id: 6, articul: "E-002", title: "Серьги подвески", priceKZT: 120000, category: "earrings", photoMain: "https://picsum.photos/seed/earr2/400" },
 ];
+
+const CATEGORIES = [
+  { key: "all", label: "Все" },
+  { key: "rings", label: "Кольца" },
+  { key: "earrings", label: "Серьги" },
+  { key: "necklaces", label: "Колье" },
+  { key: "bracelets", label: "Браслеты" },
+];
+
+let activeCategory = "all";
 
 function updateTheme() {
   let isDark = false;
-  try {
-    isDark = tg.colorScheme === "dark";
-  } catch(e) {
-    isDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  }
+  try { isDark = tg.colorScheme === "dark"; }
+  catch(e) { isDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches; }
   document.body.classList.toggle("dark-theme", isDark);
 }
 
 updateTheme();
 try { tg.onEvent("themeChanged", updateTheme); } catch(e) {}
 
-const params = new URLSearchParams(window.location.search);
-const productId = Number(params.get("id"));
-const product = PRODUCTS.find(function(p) { return p.id === productId; });
-
-let activeTab = "white";
-
-function setTab(tab) {
-  activeTab = tab;
-  render();
+function formatPrice(price) {
+  return price.toLocaleString("ru-RU") + " ₸";
 }
 
-function render() {
-  const content = document.getElementById("content");
-
-  if (!product) {
-    content.innerHTML = '<div class="not-found">Товар не найден</div>';
-    return;
-  }
-
-  const tabsHtml =
-    '<div class="tabs">' +
-      '<button class="tab-btn ' + (activeTab === "white" ? "active" : "") + '" onclick="setTab(\'white\')">На белом</button>' +
-      '<button class="tab-btn ' + (activeTab === "model" ? "active" : "") + '" onclick="setTab(\'model\')">На модели</button>' +
-    '</div>';
-
-  let photos = activeTab === "white" ? product.photosWhite : product.photosModel;
-
-  let galleryHtml = '<div class="gallery">';
-  photos.forEach(function(url) {
-    galleryHtml += '<img src="' + url + '" alt="' + product.title + '">';
+function renderCategories() {
+  const wrap = document.getElementById("categories");
+  wrap.innerHTML = "";
+  CATEGORIES.forEach(function(cat) {
+    const btn = document.createElement("button");
+    btn.className = "category-btn" + (cat.key === activeCategory ? " active" : "");
+    btn.innerText = cat.label;
+    btn.onclick = function() {
+      activeCategory = cat.key;
+      renderCategories();
+      renderProducts();
+    };
+    wrap.appendChild(btn);
   });
-  galleryHtml += '</div>';
-
-  content.innerHTML =
-    tabsHtml +
-    galleryHtml +
-    '<h1>' + product.title + '</h1>' +
-    '<div class="price">$' + product.priceUSD + '</div>' +
-    '<button class="buy-btn" onclick="buyProduct(' + product.id + ')">Купить</button>';
 }
 
-function buyProduct(id) {
-  try {
-    tg.sendData(JSON.stringify({ action: "buy", id: id }));
-  } catch(e) {
-    alert("Товар куплен (тест): ID " + id);
-  }
+function renderProducts() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  const filtered = activeCategory === "all"
+    ? PRODUCTS
+    : PRODUCTS.filter(function(p) { return p.category === activeCategory; });
+
+  filtered.forEach(function(product) {
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.innerHTML =
+      '<img class="product-photo" src="' + product.photoMain + '" alt="' + product.title + '">' +
+      '<div class="product-info">' +
+        '<div class="product-title">' + product.title + '</div>' +
+        '<div class="product-price">' + formatPrice(product.priceKZT) + '</div>' +
+        '<button class="buy-btn">Купить</button>' +
+      '</div>';
+
+    card.onclick = function() {
+      window.location.href = "product.html?id=" + product.id;
+    };
+
+    const buyBtn = card.querySelector(".buy-btn");
+    buyBtn.onclick = function(event) {
+      event.stopPropagation();
+      openWhatsApp(product.articul);
+    };
+
+    grid.appendChild(card);
+  });
 }
 
-render();
+function openWhatsApp(articul) {
+  const text = "Здравствуйте, я пишу из приложения Telegram по поводу изделия с артикулом " + articul;
+  const url = "https://wa.me/" + MANAGER_PHONE + "?text=" + encodeURIComponent(text);
+  window.location.href = url;
+}
+
+renderCategories();
+renderProducts();
 </script>
 
 </body>
