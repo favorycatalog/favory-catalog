@@ -129,13 +129,16 @@ const tg = window.Telegram.WebApp;
 try { tg.ready(); tg.expand(); } catch(e) {}
 try { tg.BackButton.hide(); } catch(e) {}
 
+// Номер менеджера для WhatsApp — ЗАМЕНИТЕ на реальный
+const MANAGER_PHONE = "77000000000";
+
 const PRODUCTS = [
-  { id: 1, title: "Кольцо с бриллиантом", priceUSD: 480, category: "rings", photoMain: "https://picsum.photos/seed/ring1/400" },
-  { id: 2, title: "Кольцо classic", priceUSD: 320, category: "rings", photoMain: "https://picsum.photos/seed/ring2/400" },
-  { id: 3, title: "Серьги гвоздики", priceUSD: 210, category: "earrings", photoMain: "https://picsum.photos/seed/earr1/400" },
-  { id: 4, title: "Колье тонкое", priceUSD: 390, category: "necklaces", photoMain: "https://picsum.photos/seed/neck1/400" },
-  { id: 5, title: "Браслет цепочка", priceUSD: 275, category: "bracelets", photoMain: "https://picsum.photos/seed/brac1/400" },
-  { id: 6, title: "Серьги подвески", priceUSD: 260, category: "earrings", photoMain: "https://picsum.photos/seed/earr2/400" },
+  { id: 1, articul: "R-001", title: "Кольцо с бриллиантом", priceKZT: 220000, category: "rings", photoMain: "https://picsum.photos/seed/ring1/400" },
+  { id: 2, articul: "R-002", title: "Кольцо classic", priceKZT: 150000, category: "rings", photoMain: "https://picsum.photos/seed/ring2/400" },
+  { id: 3, articul: "E-001", title: "Серьги гвоздики", priceKZT: 95000, category: "earrings", photoMain: "https://picsum.photos/seed/earr1/400" },
+  { id: 4, articul: "N-001", title: "Колье тонкое", priceKZT: 180000, category: "necklaces", photoMain: "https://picsum.photos/seed/neck1/400" },
+  { id: 5, articul: "B-001", title: "Браслет цепочка", priceKZT: 125000, category: "bracelets", photoMain: "https://picsum.photos/seed/brac1/400" },
+  { id: 6, articul: "E-002", title: "Серьги подвески", priceKZT: 120000, category: "earrings", photoMain: "https://picsum.photos/seed/earr2/400" },
 ];
 
 const CATEGORIES = [
@@ -158,14 +161,18 @@ function updateTheme() {
 updateTheme();
 try { tg.onEvent("themeChanged", updateTheme); } catch(e) {}
 
+function formatPrice(price) {
+  return price.toLocaleString("ru-RU") + " ₸";
+}
+
 function renderCategories() {
   const wrap = document.getElementById("categories");
   wrap.innerHTML = "";
-  CATEGORIES.forEach(cat => {
+  CATEGORIES.forEach(function(cat) {
     const btn = document.createElement("button");
     btn.className = "category-btn" + (cat.key === activeCategory ? " active" : "");
     btn.innerText = cat.label;
-    btn.onclick = () => {
+    btn.onclick = function() {
       activeCategory = cat.key;
       renderCategories();
       renderProducts();
@@ -179,40 +186,37 @@ function renderProducts() {
   grid.innerHTML = "";
   const filtered = activeCategory === "all"
     ? PRODUCTS
-    : PRODUCTS.filter(p => p.category === activeCategory);
+    : PRODUCTS.filter(function(p) { return p.category === activeCategory; });
 
-  filtered.forEach(product => {
+  filtered.forEach(function(product) {
     const card = document.createElement("div");
     card.className = "product-card";
-    card.innerHTML = `
-      <img class="product-photo" src="${product.photoMain}" alt="${product.title}">
-      <div class="product-info">
-        <div class="product-title">${product.title}</div>
-        <div class="product-price">$${product.priceUSD}</div>
-        <button class="buy-btn">Купить</button>
-      </div>
-    `;
+    card.innerHTML =
+      '<img class="product-photo" src="' + product.photoMain + '" alt="' + product.title + '">' +
+      '<div class="product-info">' +
+        '<div class="product-title">' + product.title + '</div>' +
+        '<div class="product-price">' + formatPrice(product.priceKZT) + '</div>' +
+        '<button class="buy-btn">Купить</button>' +
+      '</div>';
 
     card.onclick = function() {
-      window.location.href = `product.html?id=${product.id}`;
+      window.location.href = "product.html?id=" + product.id;
     };
 
     const buyBtn = card.querySelector(".buy-btn");
     buyBtn.onclick = function(event) {
       event.stopPropagation();
-      buyProduct(product.id);
+      openWhatsApp(product.articul);
     };
 
     grid.appendChild(card);
   });
 }
 
-function buyProduct(id) {
-  try {
-    tg.sendData(JSON.stringify({ action: "buy", id: id }));
-  } catch(e) {
-    alert("Товар куплен (тест): ID " + id);
-  }
+function openWhatsApp(articul) {
+  const text = "Здравствуйте, я пишу из приложения Telegram по поводу изделия с артикулом " + articul;
+  const url = "https://wa.me/" + MANAGER_PHONE + "?text=" + encodeURIComponent(text);
+  window.location.href = url;
 }
 
 renderCategories();
