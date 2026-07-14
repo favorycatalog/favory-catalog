@@ -91,6 +91,12 @@
     border-radius: 14px;
     border: none;
   }
+  .no-video {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--price-color);
+    margin-bottom: 16px;
+  }
   .articul {
     font-size: 13px;
     color: var(--price-color);
@@ -229,13 +235,15 @@ function render() {
   html += '<div class="gallery-tabs">';
   html += '<button class="gallery-tab-btn' + (activeTab === "white" ? " active" : "") + '" onclick="setTab(\'white\')">На белом</button>';
   html += '<button class="gallery-tab-btn' + (activeTab === "model" ? " active" : "") + '" onclick="setTab(\'model\')">На модели</button>';
-  if (product.videoId) {
-    html += '<button class="gallery-tab-btn' + (activeTab === "youtube" ? " active" : "") + '" onclick="setTab(\'youtube\')">YouTube</button>';
-  }
+  html += '<button class="gallery-tab-btn' + (activeTab === "youtube" ? " active" : "") + '" onclick="setTab(\'youtube\')">YouTube</button>';
   html += '</div>';
 
-  if (activeTab === "youtube" && product.videoId) {
-    html += '<div class="video-wrap"><iframe src="https://www.youtube.com/embed/' + product.videoId + '" allowfullscreen></iframe></div>';
+  if (activeTab === "youtube") {
+    if (product.videoId) {
+      html += '<div class="video-wrap"><iframe src="https://www.youtube.com/embed/' + product.videoId + '" allowfullscreen></iframe></div>';
+    } else {
+      html += '<div class="no-video">Видео для этого товара пока не добавлено</div>';
+    }
   } else {
     const currentPhotos = activeTab === "model" ? product.photosModel : product.photosWhite;
     const mainPhoto = currentPhotos[activePhotoIndex] || currentPhotos[0];
